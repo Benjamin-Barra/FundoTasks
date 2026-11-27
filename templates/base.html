@@ -3,18 +3,26 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{% block title %}FundoTasks{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- PARA LOS ICONOS -->
     <script src="https://unpkg.com/boxicons@2.1.4/dist/boxicons.js"></script>
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+    <style>
+        #menu-mas[open] { animation: sheet-up .25s ease-out; }
+        #menu-mas[open]::backdrop { animation: sheet-fade .25s ease-out; }
+        @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+        @keyframes sheet-fade { from { opacity: 0; } to { opacity: 1; } }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex">
 
     {% if user.is_authenticated %}
-    <aside class="w-60 bg-white border-r border-slate-200 flex flex-col justify-between h-screen sticky top-0 overflow-y-auto">
+    <!-- SIDEBAR (solo escritorio) -->
+    <aside class="hidden md:flex w-60 bg-white border-r border-slate-200 flex-col justify-between h-screen sticky top-0 overflow-y-auto">
         <div>
             <div class="px-5 py-6">
                 <span class="font-extrabold text-slate-900 text-base block">FundoTasks</span>
@@ -41,7 +49,6 @@
                 </a>
 
                 {% if user.is_staff or user.is_superuser %}
-                <!-- ADMINISTRACIÓN (solo staff / admin) -->
                 <details class="group" {% if '/administracion/' in request.path %}open{% endif %}>
                     <summary class="flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 cursor-pointer list-none">
                         <span><i class='bx bx-cog'></i> Administración</span>
@@ -87,19 +94,22 @@
     <!-- CONTENIDO -->
     <div class="flex-1 flex flex-col min-w-0">
         {% if user.is_authenticated %}
-        <!-- HEADER (solo con sesión iniciada) -->
-        <header class="bg-white border-b border-slate-200 px-8 py-3.5 flex items-center justify-between">
-            <span class="text-xs font-extrabold text-emerald-700 uppercase tracking-wider">
-                {% block panel %}Panel{% endblock %}
-            </span>
-            <div class="text-right">
-                <p class="text-xs font-extrabold text-slate-800">{{ user.email }}</p>
+        <!-- HEADER -->
+        <header class="bg-white border-b border-slate-200 px-4 md:px-8 py-3.5 flex items-center justify-between gap-3 pt-[calc(0.875rem+env(safe-area-inset-top))] md:pt-3.5">
+            <div class="flex items-center gap-3 min-w-0">
+                <span class="md:hidden font-extrabold text-slate-900 text-sm">FundoTasks</span>
+                <span class="hidden md:inline text-xs font-extrabold text-emerald-700 uppercase tracking-wider">
+                    {% block panel %}Panel{% endblock %}
+                </span>
+            </div>
+            <div class="text-right min-w-0">
+                <p class="text-xs font-extrabold text-slate-800 truncate max-w-[10rem] md:max-w-none">{{ user.email }}</p>
                 <p class="text-[11px] font-semibold text-emerald-600">{{ user.get_cargo_display }}</p>
             </div>
         </header>
         {% endif %}
 
-        <main class="flex-1 p-8">
+        <main class="flex-1 p-4 md:p-8 {% if user.is_authenticated %}pb-28 md:pb-8{% endif %}">
             {% if messages %}
             <div class="space-y-2 mb-6 max-w-3xl mx-auto">
                 {% for message in messages %}
@@ -117,6 +127,88 @@
             {% block content %}{% endblock %}
         </main>
     </div>
+
+    {% if user.is_authenticated %}
+    <!-- NAV INFERIOR (solo móvil) -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-slate-200 pb-[env(safe-area-inset-bottom)]">
+        <ul class="grid grid-cols-4">
+            <li>
+                <a href="{% url 'usuarios:inicio' %}"
+                   class="flex flex-col items-center gap-0.5 py-2.5 text-[11px]
+                   {% if request.resolver_match.url_name == 'inicio' %}text-emerald-600 font-bold{% else %}text-slate-500 font-medium{% endif %}">
+                    <i class='bx bx-home text-2xl'></i> Inicio
+                </a>
+            </li>
+            <li>
+                <!-- TODO: cambiar por la url de tareas -->
+                <a href="{% url 'usuarios:inicio' %}"
+                   class="flex flex-col items-center gap-0.5 py-2.5 text-[11px] text-slate-500 font-medium">
+                    <i class='bx bx-list-ul text-2xl'></i> Tareas
+                </a>
+            </li>
+            <li>
+                <!-- TODO: cambiar por la url de asistencia -->
+                <a href="{% url 'usuarios:inicio' %}"
+                   class="flex flex-col items-center gap-0.5 py-2.5 text-[11px] text-slate-500 font-medium">
+                    <i class='bx bx-time text-2xl'></i> Asistencia
+                </a>
+            </li>
+            <li>
+                <button type="button" id="btn-mas"
+                        class="w-full flex flex-col items-center gap-0.5 py-2.5 text-[11px]
+                        {% if '/administracion/' in request.path %}text-emerald-600 font-bold{% else %}text-slate-500 font-medium{% endif %}">
+                    <i class='bx bx-menu text-2xl'></i> Más
+                </button>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- HOJA INFERIOR "MÁS" (solo móvil) -->
+    <dialog id="menu-mas"
+            class="md:hidden m-0 mt-auto mb-0 w-full max-w-full rounded-t-2xl p-0 shadow-2xl backdrop:bg-slate-900/50">
+        <div class="p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+            <div class="mx-auto mb-4 h-1.5 w-10 rounded-full bg-slate-300"></div>
+
+            <p class="text-sm font-bold text-slate-800 truncate">{{ user.email }}</p>
+            <p class="text-xs font-semibold text-emerald-600 mb-4">{{ user.get_cargo_display }}</p>
+
+            {% if user.is_staff or user.is_superuser %}
+            <p class="pt-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Personal</p>
+            <a href="{% url 'usuarios:regis_personal' %}" class="flex items-center gap-3 px-2 py-3 rounded-lg text-sm text-slate-700 hover:bg-slate-50">
+                <i class='bx bx-user-plus text-xl'></i> Registrar personal
+            </a>
+            <a href="{% url 'usuarios:list_personal' %}" class="flex items-center gap-3 px-2 py-3 rounded-lg text-sm text-slate-700 hover:bg-slate-50">
+                <i class='bx bx-list-ul text-xl'></i> Listado de personal
+            </a>
+
+            <p class="pt-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Usuarios</p>
+            <a href="#" class="flex items-center gap-3 px-2 py-3 rounded-lg text-sm text-slate-700 hover:bg-slate-50">
+                <i class='bx bx-group text-xl'></i> Listado de usuarios
+            </a>
+            <a href="#" class="flex items-center gap-3 px-2 py-3 rounded-lg text-sm text-slate-700 hover:bg-slate-50">
+                <i class='bx bx-user-circle text-xl'></i> Crear usuario
+            </a>
+            {% endif %}
+
+            <form method="post" action="{% url 'usuarios:logout' %}" class="mt-3 pt-3 border-t border-slate-100">
+                {% csrf_token %}
+                <button type="submit" class="w-full flex items-center gap-3 px-2 py-3 rounded-lg text-sm font-medium text-rose-600 hover:bg-rose-50">
+                    <i class='bx bx-log-out text-xl'></i> Cerrar sesión
+                </button>
+            </form>
+        </div>
+    </dialog>
+
+    <script>
+        (function () {
+            const hoja = document.getElementById('menu-mas');
+            const btn = document.getElementById('btn-mas');
+            if (!hoja || !btn) return;
+            btn.addEventListener('click', () => hoja.showModal());
+            hoja.addEventListener('click', e => { if (e.target === hoja) hoja.close(); });
+        })();
+    </script>
+    {% endif %}
 
     {% block extra_js %}{% endblock %}
 </body>

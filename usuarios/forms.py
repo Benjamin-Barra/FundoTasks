@@ -1,7 +1,4 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
-
-from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from .models import Usuario, Personal, Asistencia
 
@@ -10,6 +7,8 @@ ESTILO = (
     "focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2 border"
 )
 
+
+#LOGIN Y CREACIÓN DE USUARIOS
 
 class LoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
@@ -25,17 +24,69 @@ class LoginForm(AuthenticationForm):
             'placeholder': '••••••••',
         })
 
+    def confirm_login_allowed(self, user):
+        if not user.is_active:
+            if hasattr(user, 'personal'):
+                msg = 'Tu cuenta fue desactivada. Habla con el administrador.'
+            else:
+                msg = 'Tu cuenta aún está pendiente de aprobación. Avisa al administrador.'
+            raise forms.ValidationError(msg, code='inactive')
 
 class RegistroForm(UserCreationForm):
     class Meta:
         model = Usuario
-        fields = ('username', 'email')
+        fields = ('username', 'email', 'cargo')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for campo in self.fields.values():
             campo.widget.attrs['class'] = ESTILO
             campo.help_text = ''
+
+class AutoRegistroForm(UserCreationForm):
+    class Meta:
+        model = Usuario
+        fields = ('username', 'email') 
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for campo in self.fields.values():
+            campo.widget.attrs['class'] = ESTILO
+            campo.help_text = ''
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.cargo = Usuario.Cargo.TRABAJADOR 
+        user.is_active = False               
+        if commit:
+            user.save()
+        return user
+            
+class ActualizarUsuariosForm(forms.ModelForm):
+    class Meta:
+        model = Usuario
+        fields = ('email', 'cargo')
+
+    def __init__(self, *args, editor=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        for campo in self.fields.values():
+            campo.widget.attrs['class'] = ESTILO
+
+        es_admin = editor and (editor.is_superuser or editor.cargo == 'admin')
+
+        # Un secretario no puede asignar "admin"
+        if editor and not es_admin:
+            self.fields['cargo'].choices = [
+                c for c in Usuario.Cargo.choices if c[0] != Usuario.Cargo.ADMIN
+            ]
+
+        # Nadie se cambia el cargo a sí mismo (evita quedarse sin admin)
+        if editor and self.instance.pk == editor.pk:
+            self.fields['cargo'].disabled = True
+            
+            
+
+# FORMULARIOS DE PERSONAL
             
 class RegistroPersonalForm(forms.ModelForm):
     INPUT_CLASSES = (

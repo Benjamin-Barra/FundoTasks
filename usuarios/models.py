@@ -1,18 +1,28 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 from django.utils import timezone
 
+
 # Create your models here.
 
+# MODELO PARA QUE UN SUPER USUARIO SEA CREADO CON CARGO ADMIN
+class UsuarioManager(UserManager):
+    def create_superuser(self, username=None, email=None, password=None, **extra_fields):
+        extra_fields.setdefault('cargo', 'admin')
+        return super().create_superuser(username, email, password, **extra_fields)
 
 class Usuario(AbstractUser):
     class Cargo(models.TextChoices):
         ADMIN = 'admin', 'Administrador'
-        SUPERVISOR = 'supervisor', 'Supervisor'
+        SECRETARIO = 'secretario', 'Secretario'
         TRABAJADOR = 'trabajador', 'Trabajador'
         
     email = models.EmailField('correo', max_length=90, unique=True)
     cargo = models.CharField(max_length=30, choices=Cargo.choices, default=Cargo.TRABAJADOR)
+    
+    @property
+    def puede_administrar(self):
+        return self.is_superuser or self.cargo in (self.Cargo.ADMIN, self.Cargo.SECRETARIO)
     
     def __str__(self):
         return self.email

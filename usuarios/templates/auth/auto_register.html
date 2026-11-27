@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear cuenta - FundoTasks{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-md mt-8 md:mt-16 space-y-6">
+
+    <header class="text-center">
+        <h1 class="text-3xl font-extrabold text-slate-900">FundoTasks</h1>
+        <p class="text-lg font-semibold text-emerald-600">Fundo San Carlos</p>
+    </header>
+
+    <section class="bg-white rounded-2xl border-2 border-slate-200 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold text-slate-900">Crear cuenta</h2>
+        <p class="mt-1 text-base text-slate-600">
+            Cuando termines, el administrador revisará tu solicitud y podrás entrar.
+        </p>
+
+        <form method="post" class="mt-6 space-y-5">
+            {% csrf_token %}
+
+            {% for e in form.non_field_errors %}
+                <p class="rounded-xl bg-red-50 border-2 border-red-200 p-3 text-base font-semibold text-red-700">{{ e }}</p>
+            {% endfor %}
+
+            {% for campo in form %}
+                <div>
+                    <label for="{{ campo.id_for_label }}" class="block text-lg font-semibold text-slate-800 mb-1">
+                        {{ campo.label }}
+                    </label>
+                    {{ campo }}
+                    {% for e in campo.errors %}
+                        <p class="mt-1 text-base font-semibold text-red-700">{{ e }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <p class="text-base text-slate-500">
+                Tu contraseña debe tener al menos 8 caracteres y no ser solo números.
+            </p>
+
+            <button type="submit"
+                    class="w-full rounded-xl bg-emerald-600 px-6 py-4 text-lg font-bold text-white shadow hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300">
+                Crear cuenta
+            </button>
+        </form>
+
+        <p class="mt-6 text-center text-lg text-slate-600">
+            ¿Ya tienes cuenta?
+            <a href="{% url 'usuarios:login' %}" class="font-bold text-emerald-700 underline">Iniciar sesión</a>
+        </p>
+    </section>
+
+</div>
+{% endblock %}

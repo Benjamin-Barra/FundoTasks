@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}{{ personal.nombre }} - FundoTasks{% endblock %}
+{% block panel %}Perfil{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl space-y-8">
+
+    <!-- Datos -->
+    <section class="bg-white rounded-2xl border-2 border-slate-200 p-6 shadow-sm">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900">{{ personal.nombre }}</h1>
+                <p class="text-lg text-slate-600 mt-1">{{ personal.usuario.get_cargo_display }}</p>
+            </div>
+            <span class="inline-flex items-center gap-1 rounded-full px-4 py-1 text-base font-semibold
+                {% if personal.estado == 'activo' %}bg-emerald-100 text-emerald-800{% else %}bg-slate-200 text-slate-700{% endif %}">
+                {{ personal.get_estado_display }}
+            </span>
+        </div>
+
+        <dl class="mt-5 grid gap-4 sm:grid-cols-2 text-lg">
+            <div>
+                <dt class="text-base font-semibold text-slate-500">RUT</dt>
+                <dd class="font-bold text-slate-900">{{ personal.rut }}</dd>
+            </div>
+            <div>
+                <dt class="text-base font-semibold text-slate-500">Correo</dt>
+                <dd class="font-bold text-slate-900 break-all">{{ personal.usuario.email }}</dd>
+            </div>
+        </dl>
+
+        {% if es_gestor %}
+        <div class="mt-6">
+            <a href="{% url 'usuarios:edit_personal' personal.id %}"
+               class="inline-flex items-center gap-2 rounded-xl border-2 border-slate-300 px-5 py-3 text-lg font-semibold text-slate-800 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-slate-300">
+                <i class='bx bx-edit text-2xl'></i> Editar datos
+            </a>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- Tareas pendientes -->
+    <section>
+        <h2 class="text-xl font-bold text-slate-800 mb-3">
+            Tareas pendientes
+            {% if pendientes %}<span class="text-slate-500 font-medium">({{ pendientes|length }})</span>{% endif %}
+        </h2>
+
+        {% for a in pendientes %}
+            <article class="bg-white border-2 border-slate-200 border-l-8 border-l-amber-500 rounded-2xl p-5 mb-3 shadow-sm">
+                <p class="text-xl font-bold text-slate-900">{{ a.tarea.nombreTarea }}</p>
+                <p class="mt-1 flex items-center gap-2 text-base font-semibold text-slate-600">
+                    <i class='bx bx-calendar text-xl'></i> {{ a.tarea.fechaProgramada|date:"l j \d\e F" }}
+                </p>
+            </article>
+        {% empty %}
+            <p class="rounded-2xl border-2 border-dashed border-slate-300 p-6 text-center text-lg text-slate-500">
+                No tiene tareas pendientes.
+            </p>
+        {% endfor %}
+    </section>
+
+    <!-- Tareas completadas -->
+    {% if completadas %}
+    <section>
+        <h2 class="text-xl font-bold text-slate-800 mb-3">Últimas completadas</h2>
+        {% for a in completadas %}
+            <article class="bg-slate-50 border-2 border-slate-200 border-l-8 border-l-emerald-600 rounded-2xl p-4 mb-3">
+                <p class="flex items-center gap-2 text-lg font-semibold text-slate-700">
+                    <i class='bx bx-check-circle text-2xl text-emerald-600'></i> {{ a.tarea.nombreTarea }}
+                </p>
+                <p class="mt-1 text-base text-slate-500">{{ a.tarea.fechaProgramada|date:"j \d\e F, Y" }}</p>
+            </article>
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    <!-- Asistencia -->
+    <section>
+        <h2 class="text-xl font-bold text-slate-800 mb-3">Asistencia reciente</h2>
+        {% for s in asistencias %}
+            <p class="flex items-center justify-between border-b border-slate-200 py-3 text-lg">
+                <span>{{ s.fecha|date:"l j \d\e F" }}</span>
+                {% if s.estadoAsistencia %}
+                    <span class="font-semibold text-emerald-700"><i class='bx bx-check-circle'></i> Presente</span>
+                {% else %}
+                    <span class="font-semibold text-red-700"><i class='bx bx-x-circle'></i> Ausente</span>
+                {% endif %}
+            </p>
+        {% empty %}
+            <p class="text-lg text-slate-500">Aún no hay asistencias registradas.</p>
+        {% endfor %}
+    </section>
+
+</div>
+{% endblock %}

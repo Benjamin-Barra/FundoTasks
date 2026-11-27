@@ -22,56 +22,76 @@
 
     {% if user.is_authenticated %}
     <!-- SIDEBAR (solo escritorio) -->
-    <aside class="hidden md:flex w-60 bg-white border-r border-slate-200 flex-col justify-between h-screen sticky top-0 overflow-y-auto">
+    <aside class="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col justify-between h-screen sticky top-0 overflow-y-auto">
         <div>
             <div class="px-5 py-6">
-                <span class="font-extrabold text-slate-900 text-base block">FundoTasks</span>
-                <span class="text-xs font-medium text-emerald-600">Fundo San Carlos</span>
+                <span class="font-extrabold text-slate-900 text-xl block">FundoTasks</span>
+                <span class="text-sm font-semibold text-emerald-600">Fundo San Carlos</span>
             </div>
 
             <nav class="px-3 space-y-1">
                 <a href="{% url 'usuarios:inicio' %}"
-                   class="block px-4 py-2.5 rounded-xl text-sm
-                   {% if request.resolver_match.url_name == 'inicio' %}bg-emerald-50 text-emerald-700 font-bold{% else %}text-slate-600 hover:bg-slate-50 font-medium{% endif %}">
-                    <i class='bx bx-home'></i> Inicio
+                   class="flex items-center gap-3 px-4 py-3 rounded-xl text-base focus:outline-none focus:ring-4 focus:ring-emerald-200
+                   {% if request.resolver_match.url_name == 'inicio' %}bg-emerald-50 text-emerald-700 font-bold{% else %}text-slate-700 hover:bg-slate-50 font-medium{% endif %}">
+                    <i class='bx bx-home text-xl'></i> Inicio
                 </a>
 
-                <!-- TODO: cambiar por la url de tareas -->
-                <a href="{% url 'usuarios:inicio' %}"
-                   class="block px-4 py-2.5 rounded-xl text-sm text-slate-600 hover:bg-slate-50 font-medium">
-                    <i class='bx bx-list-ul'></i> Tareas
+                {% if user.cargo == 'trabajador' %}
+                <a href="{% url 'tareas:ini_tareas' %}"
+                   class="flex items-center gap-3 px-4 py-3 rounded-xl text-base focus:outline-none focus:ring-4 focus:ring-emerald-200
+                   {% if request.resolver_match.url_name == 'ini_tareas' %}bg-emerald-50 text-emerald-700 font-bold{% else %}text-slate-700 hover:bg-slate-50 font-medium{% endif %}">
+                    <i class='bx bx-list-check text-xl'></i> Mis tareas
                 </a>
 
                 <!-- TODO: cambiar por la url de asistencia -->
                 <a href="{% url 'usuarios:inicio' %}"
-                   class="block px-4 py-2.5 rounded-xl text-sm text-slate-600 hover:bg-slate-50 font-medium">
-                    <i class='bx bx-time'></i> Asistencia
+                   class="flex items-center gap-3 px-4 py-3 rounded-xl text-base text-slate-700 hover:bg-slate-50 font-medium focus:outline-none focus:ring-4 focus:ring-emerald-200">
+                    <i class='bx bx-time text-xl'></i> Asistencia
                 </a>
+                {% endif %}
 
-                {% if user.is_staff or user.is_superuser %}
-                <details class="group" {% if '/administracion/' in request.path %}open{% endif %}>
-                    <summary class="flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 cursor-pointer list-none">
-                        <span><i class='bx bx-cog'></i> Administración</span>
-                        <i class='bx bx-chevron-down transition-transform group-open:rotate-180'></i>
+                {% if user.puede_administrar %}
+                <details class="group" {% if '/administracion/' in request.path or request.resolver_match.app_name == 'tareas' %}open{% endif %}>
+                    <summary class="flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium text-slate-700 hover:bg-slate-50 cursor-pointer list-none">
+                        <span class="flex items-center gap-3"><i class='bx bx-cog text-xl'></i> Administración</span>
+                        <i class='bx bx-chevron-down text-xl transition-transform group-open:rotate-180'></i>
                     </summary>
 
-                    <div class="mt-1 ml-4 pl-3 border-l border-slate-200 space-y-1">
-                        <p class="px-3 pt-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Personal</p>
-                        <a href="{% url 'usuarios:regis_personal' %}"
-                           class="block px-3 py-2 rounded-lg text-sm
-                           {% if request.resolver_match.url_name == 'regis_personal' %}bg-emerald-50 text-emerald-700 font-bold{% else %}text-slate-600 hover:bg-slate-50{% endif %}">
-                            <i class='bx bx-user-plus'></i> Registrar personal
+                    <div class="mt-1 ml-4 pl-3 border-l-2 border-slate-200 space-y-1">
+                        <p class="px-3 pt-2 text-xs font-extrabold uppercase tracking-wider text-slate-500">Tareas</p>
+                        <a href="{% url 'tareas:cre_tarea' %}"
+                           class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-base
+                           {% if request.resolver_match.url_name == 'cre_tarea' %}bg-emerald-50 text-emerald-700 font-bold{% else %}text-slate-700 hover:bg-slate-50{% endif %}">
+                            <i class='bx bx-plus-circle text-lg'></i> Crear tarea
                         </a>
-                        <a href="{% url 'usuarios:list_personal' %}" class="block px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
-                            <i class='bx bx-list-ul'></i> Listado de personal
+                        <a href="{% url 'tareas:asign_tarea' %}"
+                           class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-base
+                           {% if request.resolver_match.url_name == 'asign_tarea' %}bg-emerald-50 text-emerald-700 font-bold{% else %}text-slate-700 hover:bg-slate-50{% endif %}">
+                            <i class='bx bx-task text-lg'></i> Asignar tareas
                         </a>
 
-                        <p class="px-3 pt-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Usuarios</p>
-                        <a href="#" class="block px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
-                            <i class='bx bx-group'></i> Listado de usuarios
+                        <p class="px-3 pt-3 text-xs font-extrabold uppercase tracking-wider text-slate-500">Personal</p>
+                        <a href="{% url 'usuarios:list_personal' %}"
+                           class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-base
+                           {% if request.resolver_match.url_name == 'list_personal' %}bg-emerald-50 text-emerald-700 font-bold{% else %}text-slate-700 hover:bg-slate-50{% endif %}">
+                            <i class='bx bx-list-ul text-lg'></i> Listado de personal
                         </a>
-                        <a href="#" class="block px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
-                            <i class='bx bx-user-circle'></i> Crear usuario
+                        <a href="{% url 'usuarios:regis_personal' %}"
+                           class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-base
+                           {% if request.resolver_match.url_name == 'regis_personal' %}bg-emerald-50 text-emerald-700 font-bold{% else %}text-slate-700 hover:bg-slate-50{% endif %}">
+                            <i class='bx bx-user-plus text-lg'></i> Registrar personal
+                        </a>
+
+                        <p class="px-3 pt-3 text-xs font-extrabold uppercase tracking-wider text-slate-500">Usuarios</p>
+                        <a href="{% url 'usuarios:list_usuarios' %}"
+                           class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-base
+                           {% if request.resolver_match.url_name == 'list_usuarios' %}bg-emerald-50 text-emerald-700 font-bold{% else %}text-slate-700 hover:bg-slate-50{% endif %}">
+                            <i class='bx bx-group text-lg'></i> Listado de usuarios
+                        </a>
+                        <a href="{% url 'usuarios:register' %}"
+                           class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-base
+                           {% if request.resolver_match.url_name == 'register' %}bg-emerald-50 text-emerald-700 font-bold{% else %}text-slate-700 hover:bg-slate-50{% endif %}">
+                            <i class='bx bx-user-circle text-lg'></i> Crear usuario
                         </a>
                     </div>
                 </details>
@@ -79,14 +99,38 @@
             </nav>
         </div>
 
+        <!-- PERFIL (ver perfil / cerrar sesión) -->
         <div class="px-3 py-4 border-t border-slate-100">
-            <form method="post" action="{% url 'usuarios:logout' %}">
-                {% csrf_token %}
-                <button type="submit"
-                    class="w-full text-left px-4 py-2.5 rounded-xl text-sm text-rose-600 hover:bg-rose-50 font-medium">
-                    <i class='bx bx-log-out'></i> Cerrar sesión
-                </button>
-            </form>
+            <details id="menu-perfil" class="group relative">
+                <summary class="flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer list-none hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-emerald-200">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xl font-extrabold text-emerald-700">
+                        {{ user.email|first|upper }}
+                    </span>
+                    <span class="min-w-0 flex-1">
+                        <span class="block truncate text-base font-bold text-slate-800">
+                            {% if user.personal %}{{ user.personal.nombre }}{% else %}{{ user.email }}{% endif %}
+                        </span>
+                        <span class="block text-sm font-semibold text-emerald-700">{{ user.get_cargo_display }}</span>
+                    </span>
+                    <i class='bx bx-chevron-up text-xl text-slate-500 transition-transform group-open:rotate-180'></i>
+                </summary>
+
+                <div class="absolute bottom-full left-0 right-0 mb-2 rounded-xl border-2 border-slate-200 bg-white p-2 shadow-lg">
+                    {% if user.personal %}
+                    <a href="{% url 'usuarios:perfil_personal' user.personal.id %}"
+                       class="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-slate-800 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-emerald-200">
+                        <i class='bx bx-user text-xl'></i> Ver perfil
+                    </a>
+                    {% endif %}
+                    <form method="post" action="{% url 'usuarios:logout' %}">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left text-base font-semibold text-rose-700 hover:bg-rose-50 focus:outline-none focus:ring-4 focus:ring-rose-200">
+                            <i class='bx bx-log-out text-xl'></i> Cerrar sesión
+                        </button>
+                    </form>
+                </div>
+            </details>
         </div>
     </aside>
     {% endif %}
@@ -97,14 +141,14 @@
         <!-- HEADER -->
         <header class="bg-white border-b border-slate-200 px-4 md:px-8 py-3.5 flex items-center justify-between gap-3 pt-[calc(0.875rem+env(safe-area-inset-top))] md:pt-3.5">
             <div class="flex items-center gap-3 min-w-0">
-                <span class="md:hidden font-extrabold text-slate-900 text-sm">FundoTasks</span>
-                <span class="hidden md:inline text-xs font-extrabold text-emerald-700 uppercase tracking-wider">
+                <span class="md:hidden font-extrabold text-slate-900 text-lg">FundoTasks</span>
+                <span class="hidden md:inline text-sm font-extrabold text-emerald-700 uppercase tracking-wider">
                     {% block panel %}Panel{% endblock %}
                 </span>
             </div>
             <div class="text-right min-w-0">
-                <p class="text-xs font-extrabold text-slate-800 truncate max-w-[10rem] md:max-w-none">{{ user.email }}</p>
-                <p class="text-[11px] font-semibold text-emerald-600">{{ user.get_cargo_display }}</p>
+                <p class="text-sm font-extrabold text-slate-800 truncate max-w-[10rem] md:max-w-none">{{ user.email }}</p>
+                <p class="text-sm font-semibold text-emerald-700">{{ user.get_cargo_display }}</p>
             </div>
         </header>
         {% endif %}
@@ -113,7 +157,7 @@
             {% if messages %}
             <div class="space-y-2 mb-6 max-w-3xl mx-auto">
                 {% for message in messages %}
-                <div class="rounded-lg border px-4 py-3 text-sm
+                <div class="rounded-xl border-2 px-4 py-3 text-base font-semibold
                     {% if message.tags == 'success' %}bg-green-50 border-green-200 text-green-800
                     {% elif message.tags == 'error' %}bg-red-50 border-red-200 text-red-800
                     {% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-800
@@ -131,69 +175,88 @@
     {% if user.is_authenticated %}
     <!-- NAV INFERIOR (solo móvil) -->
     <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-slate-200 pb-[env(safe-area-inset-bottom)]">
-        <ul class="grid grid-cols-4">
-            <li>
+        <ul class="flex">
+            <li class="flex-1">
                 <a href="{% url 'usuarios:inicio' %}"
-                   class="flex flex-col items-center gap-0.5 py-2.5 text-[11px]
-                   {% if request.resolver_match.url_name == 'inicio' %}text-emerald-600 font-bold{% else %}text-slate-500 font-medium{% endif %}">
-                    <i class='bx bx-home text-2xl'></i> Inicio
+                   class="flex flex-col items-center gap-0.5 py-3 text-sm
+                   {% if request.resolver_match.url_name == 'inicio' %}text-emerald-700 font-bold{% else %}text-slate-600 font-medium{% endif %}">
+                    <i class='bx bx-home text-3xl'></i> Inicio
                 </a>
             </li>
-            <li>
-                <!-- TODO: cambiar por la url de tareas -->
-                <a href="{% url 'usuarios:inicio' %}"
-                   class="flex flex-col items-center gap-0.5 py-2.5 text-[11px] text-slate-500 font-medium">
-                    <i class='bx bx-list-ul text-2xl'></i> Tareas
+            {% if user.cargo == 'trabajador' %}
+            <li class="flex-1">
+                <a href="{% url 'tareas:ini_tareas' %}"
+                   class="flex flex-col items-center gap-0.5 py-3 text-sm
+                   {% if request.resolver_match.url_name == 'ini_tareas' %}text-emerald-700 font-bold{% else %}text-slate-600 font-medium{% endif %}">
+                    <i class='bx bx-list-check text-3xl'></i> Mis tareas
                 </a>
             </li>
-            <li>
+            <li class="flex-1">
                 <!-- TODO: cambiar por la url de asistencia -->
                 <a href="{% url 'usuarios:inicio' %}"
-                   class="flex flex-col items-center gap-0.5 py-2.5 text-[11px] text-slate-500 font-medium">
-                    <i class='bx bx-time text-2xl'></i> Asistencia
+                   class="flex flex-col items-center gap-0.5 py-3 text-sm text-slate-600 font-medium">
+                    <i class='bx bx-time text-3xl'></i> Asistencia
                 </a>
             </li>
-            <li>
+            {% endif %}
+            <li class="flex-1">
                 <button type="button" id="btn-mas"
-                        class="w-full flex flex-col items-center gap-0.5 py-2.5 text-[11px]
-                        {% if '/administracion/' in request.path %}text-emerald-600 font-bold{% else %}text-slate-500 font-medium{% endif %}">
-                    <i class='bx bx-menu text-2xl'></i> Más
+                        class="w-full flex flex-col items-center gap-0.5 py-3 text-sm
+                        {% if '/administracion/' in request.path %}text-emerald-700 font-bold{% else %}text-slate-600 font-medium{% endif %}">
+                    <i class='bx bx-menu text-3xl'></i> Más
                 </button>
             </li>
         </ul>
     </nav>
 
-    <!-- HOJA INFERIOR "MÁS" (solo móvil) -->
+    <!-- Menú "Más" (móvil) -->
     <dialog id="menu-mas"
             class="md:hidden m-0 mt-auto mb-0 w-full max-w-full rounded-t-2xl p-0 shadow-2xl backdrop:bg-slate-900/50">
         <div class="p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
             <div class="mx-auto mb-4 h-1.5 w-10 rounded-full bg-slate-300"></div>
 
-            <p class="text-sm font-bold text-slate-800 truncate">{{ user.email }}</p>
-            <p class="text-xs font-semibold text-emerald-600 mb-4">{{ user.get_cargo_display }}</p>
+            <p class="text-base font-bold text-slate-800 truncate">
+                {% if user.personal %}{{ user.personal.nombre }}{% else %}{{ user.email }}{% endif %}
+            </p>
+            <p class="text-sm font-semibold text-emerald-700 mb-4">{{ user.get_cargo_display }}</p>
 
-            {% if user.is_staff or user.is_superuser %}
-            <p class="pt-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Personal</p>
-            <a href="{% url 'usuarios:regis_personal' %}" class="flex items-center gap-3 px-2 py-3 rounded-lg text-sm text-slate-700 hover:bg-slate-50">
-                <i class='bx bx-user-plus text-xl'></i> Registrar personal
+            {% if user.puede_administrar %}
+            <p class="pt-2 text-xs font-extrabold uppercase tracking-wider text-slate-500">Tareas</p>
+            <a href="{% url 'tareas:cre_tarea' %}" class="flex items-center gap-3 px-2 py-3.5 rounded-lg text-lg text-slate-800 hover:bg-slate-50">
+                <i class='bx bx-plus-circle text-2xl'></i> Crear tarea
             </a>
-            <a href="{% url 'usuarios:list_personal' %}" class="flex items-center gap-3 px-2 py-3 rounded-lg text-sm text-slate-700 hover:bg-slate-50">
-                <i class='bx bx-list-ul text-xl'></i> Listado de personal
+            <a href="{% url 'tareas:asign_tarea' %}" class="flex items-center gap-3 px-2 py-3.5 rounded-lg text-lg text-slate-800 hover:bg-slate-50">
+                <i class='bx bx-task text-2xl'></i> Asignar tareas
             </a>
 
-            <p class="pt-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Usuarios</p>
-            <a href="#" class="flex items-center gap-3 px-2 py-3 rounded-lg text-sm text-slate-700 hover:bg-slate-50">
-                <i class='bx bx-group text-xl'></i> Listado de usuarios
+            <p class="pt-3 text-xs font-extrabold uppercase tracking-wider text-slate-500">Personal</p>
+            <a href="{% url 'usuarios:list_personal' %}" class="flex items-center gap-3 px-2 py-3.5 rounded-lg text-lg text-slate-800 hover:bg-slate-50">
+                <i class='bx bx-list-ul text-2xl'></i> Listado de personal
             </a>
-            <a href="#" class="flex items-center gap-3 px-2 py-3 rounded-lg text-sm text-slate-700 hover:bg-slate-50">
-                <i class='bx bx-user-circle text-xl'></i> Crear usuario
+            <a href="{% url 'usuarios:regis_personal' %}" class="flex items-center gap-3 px-2 py-3.5 rounded-lg text-lg text-slate-800 hover:bg-slate-50">
+                <i class='bx bx-user-plus text-2xl'></i> Registrar personal
+            </a>
+
+            <p class="pt-3 text-xs font-extrabold uppercase tracking-wider text-slate-500">Usuarios</p>
+            <a href="{% url 'usuarios:list_usuarios' %}" class="flex items-center gap-3 px-2 py-3.5 rounded-lg text-lg text-slate-800 hover:bg-slate-50">
+                <i class='bx bx-group text-2xl'></i> Listado de usuarios
+            </a>
+            <a href="{% url 'usuarios:register' %}" class="flex items-center gap-3 px-2 py-3.5 rounded-lg text-lg text-slate-800 hover:bg-slate-50">
+                <i class='bx bx-user-circle text-2xl'></i> Crear usuario
             </a>
             {% endif %}
 
-            <form method="post" action="{% url 'usuarios:logout' %}" class="mt-3 pt-3 border-t border-slate-100">
+            {% if user.personal %}
+            <a href="{% url 'usuarios:perfil_personal' user.personal.id %}"
+               class="mt-3 pt-3 border-t border-slate-100 flex items-center gap-3 px-2 py-3.5 rounded-lg text-lg text-slate-800 hover:bg-slate-50">
+                <i class='bx bx-user text-2xl'></i> Ver perfil
+            </a>
+            {% endif %}
+
+            <form method="post" action="{% url 'usuarios:logout' %}">
                 {% csrf_token %}
-                <button type="submit" class="w-full flex items-center gap-3 px-2 py-3 rounded-lg text-sm font-medium text-rose-600 hover:bg-rose-50">
-                    <i class='bx bx-log-out text-xl'></i> Cerrar sesión
+                <button type="submit" class="w-full flex items-center gap-3 px-2 py-3.5 rounded-lg text-lg font-semibold text-rose-700 hover:bg-rose-50">
+                    <i class='bx bx-log-out text-2xl'></i> Cerrar sesión
                 </button>
             </form>
         </div>
@@ -201,11 +264,19 @@
 
     <script>
         (function () {
+            // Menú "Más" (móvil)
             const hoja = document.getElementById('menu-mas');
             const btn = document.getElementById('btn-mas');
-            if (!hoja || !btn) return;
-            btn.addEventListener('click', () => hoja.showModal());
-            hoja.addEventListener('click', e => { if (e.target === hoja) hoja.close(); });
+            if (hoja && btn) {
+                btn.addEventListener('click', () => hoja.showModal());
+                hoja.addEventListener('click', e => { if (e.target === hoja) hoja.close(); });
+            }
+
+            // Menú de perfil (escritorio): cerrar al tocar afuera
+            document.addEventListener('click', e => {
+                const m = document.getElementById('menu-perfil');
+                if (m && m.open && !m.contains(e.target)) m.removeAttribute('open');
+            });
         })();
     </script>
     {% endif %}

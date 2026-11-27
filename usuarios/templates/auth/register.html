@@ -1,19 +1,49 @@
 {% extends 'base.html' %}
 
-{% block sidebar %}{% endblock %}
-{% block header %}{% endblock %}
+{% block title %}{{ titulo|default:"Crear cuenta" }} - FundoTasks{% endblock %}
 
 {% block content %}
-<div class="max-w-sm mx-auto mt-24 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-    <h1 class="text-xl font-extrabold mb-4">Crear cuenta</h1>
-    <form method="post" class="space-y-3">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit"
-            class="w-full bg-emerald-600 text-white font-bold rounded-xl py-2 hover:bg-emerald-500">
-            Registrarse
-        </button>
-    </form>
-    <a href="{% url 'usuarios:login' %}" class="text-sm text-emerald-700 mt-3 block">Ya tengo cuenta</a>
+<div class="mx-auto max-w-xl space-y-6">
+
+    <header>
+        <h1 class="text-3xl font-extrabold text-slate-900">{{ titulo|default:"Crear cuenta" }}</h1>
+        {% if object %}
+            <p class="text-lg text-slate-600 mt-1">{{ object.email }}</p>
+        {% endif %}
+    </header>
+
+    <section class="bg-white rounded-2xl border-2 border-slate-200 p-6 shadow-sm">
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+
+            {% for e in form.non_field_errors %}
+                <p class="rounded-xl bg-red-50 border-2 border-red-200 p-3 text-base font-semibold text-red-700">{{ e }}</p>
+            {% endfor %}
+
+            {% for campo in form %}
+                <div>
+                    <label for="{{ campo.id_for_label }}" class="block text-lg font-semibold text-slate-800 mb-1">
+                        {{ campo.label }}
+                    </label>
+                    {{ campo }}
+                    {% for e in campo.errors %}
+                        <p class="mt-1 text-base font-semibold text-red-700">{{ e }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <div class="flex flex-wrap gap-3 pt-2">
+                <button type="submit"
+                        class="flex-1 rounded-xl bg-emerald-600 px-6 py-4 text-lg font-bold text-white shadow hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300">
+                    {{ boton|default:"Registrarse" }}
+                </button>
+                <a href="{% url 'usuarios:list_usuarios' %}"
+                   class="rounded-xl border-2 border-slate-300 px-6 py-4 text-lg font-semibold text-slate-800 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-slate-300">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </section>
+
 </div>
 {% endblock %}

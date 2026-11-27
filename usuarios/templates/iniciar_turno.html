@@ -1,0 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar turno · FundoTasks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-slate-900 flex items-center justify-center p-6">
+
+    <main class="w-full max-w-md rounded-2xl bg-white p-10 text-center shadow-2xl">
+        <p class="text-xs font-extrabold uppercase tracking-wider text-emerald-600">FundoTasks · Fundo San Carlos</p>
+
+        <div class="mx-auto my-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 ring-8 ring-emerald-50">
+            <i class='bx bx-time-five text-5xl text-emerald-600'></i>
+        </div>
+
+        <h1 class="text-2xl font-bold text-slate-800">
+            Hola{% if personal %}, {{ personal.nombre|truncatewords:1 }}{% endif %} 👋
+        </h1>
+        <p class="mt-2 text-sm text-slate-500">
+            Antes de empezar, inicia tu turno de hoy
+            <span class="font-semibold text-slate-700">{{ hoy|date:"d/m/Y" }}</span>.
+        </p>
+
+        <!-- Reloj solo decorativo: la hora que cuenta es la del servidor -->
+        <p id="reloj" class="mt-4 text-4xl font-extrabold tabular-nums text-slate-800">--:--:--</p>
+
+        {% if messages %}
+        <div class="mt-4 space-y-2 text-left">
+            {% for message in messages %}
+            <div class="rounded-lg border px-4 py-3 text-sm
+                {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800
+                {% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-800
+                {% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'usuarios:marcar_asistencia' %}" class="mt-8">
+            {% csrf_token %}
+            <button type="submit" id="btn-turno"
+                    class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-4 text-base font-bold text-white shadow-lg hover:bg-emerald-700 disabled:opacity-60">
+                <i class='bx bx-play-circle text-2xl'></i> Iniciar turno
+            </button>
+        </form>
+
+        <p class="mt-4 text-xs text-slate-400">
+            Si no inicias tu turno hoy, quedarás registrado como ausente.
+        </p>
+
+        <form method="post" action="{% url 'usuarios:logout' %}" class="mt-6">
+            {% csrf_token %}
+            <button type="submit" class="text-xs font-medium text-slate-400 hover:text-rose-600">
+                Cerrar sesión
+            </button>
+        </form>
+    </main>
+
+    <script>
+        const reloj = document.getElementById('reloj');
+        const tick = () => reloj.textContent = new Date().toLocaleTimeString('es-CL', {hour12: false});
+        tick(); setInterval(tick, 1000);
+
+        // Evita doble envío
+        document.querySelector('form[action*="marcar"]').addEventListener('submit', () => {
+            document.getElementById('btn-turno').disabled = true;
+        });
+    </script>
+</body>
+</html>

@@ -1,10 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Mis Tareas - FundoTasks{% endblock %}
+{% block title %}Inicio - FundoTasks{% endblock %}
 
 {% block content %}
 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-    <h1 class="text-3xl font-bold tracking-tight text-slate-900 mb-2">Mis Tareas del Fundo 🚜</h1>
-    <p class="text-slate-500">Aquí va toda la magia de tu aplicación.</p>
+    <h1 class="text-3xl font-bold tracking-tight text-slate-900 mb-2">Mis Tareas del Fundo</h1>
+    {% for a in tareas_hoy %}
+        <div class="bg-white border border-slate-200 rounded-xl p-4 mb-2">
+            <p class="font-semibold">{{ a.tarea.nombreTarea }}</p>
+            <p class="text-sm text-slate-500">{{ a.get_estadoAsignacion_display }}</p>
+        </div>
+    {% empty %}
+        <p class="text-slate-500">No tienes tareas para hoy.</p>
+    {% endfor %}
 </div>
 {% endblock %}

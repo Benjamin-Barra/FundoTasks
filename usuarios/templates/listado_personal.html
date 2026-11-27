@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Listado de personal · FundoTasks{% endblock %}
+{% block panel %}Personal{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+
+    <!-- Encabezado -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Listado de personal</h1>
+            <p class="text-sm text-slate-500">
+                {{ personal|length }} registro{{ personal|length|pluralize }}
+            </p>
+        </div>
+        <a href="{% url 'usuarios:regis_personal' %}"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+            <i class='bx bx-user-plus'></i> Registrar personal
+        </a>
+    </div>
+
+    <!-- Tabla -->
+    <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+                    <tr>
+                        <th class="px-6 py-3 font-bold">Nombre</th>
+                        <th class="px-6 py-3 font-bold">RUT</th>
+                        <th class="px-6 py-3 font-bold">Usuario</th>
+                        <th class="px-6 py-3 font-bold">Estado</th>
+                        <th class="px-6 py-3 font-bold text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for p in personal %}
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-6 py-4 font-medium text-slate-800">{{ p.nombre }}</td>
+                        <td class="px-6 py-4 text-slate-600">{{ p.rut }}</td>
+                        <td class="px-6 py-4 text-slate-600">{{ p.usuario.email }}</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-block px-2.5 py-1 rounded-full text-xs font-semibold
+                                {% if p.estado == 'activo' %}bg-emerald-50 text-emerald-700
+                                {% else %}bg-slate-100 text-slate-600{% endif %}">
+                                {{ p.get_estado_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex justify-end gap-2">
+                                <a href="{% url 'usuarios:edit_personal' p.id %}"
+                                   class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 text-xs font-medium hover:bg-slate-50">
+                                    <i class='bx bx-edit'></i> Editar
+                                </a>
+                                {% if p.estado == 'inactivo' %}
+                                    <span class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-400">
+                                        <i class='bx bx-block'></i> Dado de baja
+                                    </span>
+                                {% else %}
+                                    <button type="button"
+                                            data-baja-url="{% url 'usuarios:baja_personal' p.id %}"
+                                            data-baja-nombre="{{ p.nombre }}"
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-rose-200 text-rose-600 text-xs font-medium hover:bg-rose-50">
+                                        <i class='bx bx-trash'></i> Dar de baja
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                            <i class='bx bx-user-x text-3xl block mb-2'></i>
+                            Aún no hay personal registrado.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!--MODAL PARA DAR DE BAJA PERSONAL-->
+<dialog id="modal-baja"
+        class="m-auto w-full max-w-md rounded-2xl p-0 shadow-2xl backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm">
+    <form id="form-baja" method="post" class="p-8 text-center">
+        {% csrf_token %}
+
+        <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-rose-100 ring-8 ring-rose-50">
+            <i class='bx bx-user-minus text-3xl text-rose-600'></i>
+        </div>
+
+        <h2 class="text-xl font-bold text-slate-800">¿Dar de baja a este funcionario?</h2>
+        <p class="mt-2 text-sm text-slate-500">
+            Vas a dar de baja a
+            <span id="baja-nombre" class="font-semibold text-slate-800"></span>.
+            Su historial se conserva, pero dejará de aparecer como personal activo.
+        </p>
+
+        <div class="mt-8 flex gap-3">
+            <button type="button" data-cerrar
+                    class="flex-1 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                Cancelar
+            </button>
+            <button type="submit" id="btn-confirmar-baja"
+                    class="flex-1 rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-rose-700 disabled:opacity-60">
+                Sí, dar de baja
+            </button>
+        </div>
+    </form>
+</dialog>
+
+<style>
+    #modal-baja[open] { animation: modal-in .25s ease-out; }
+    #modal-baja[open]::backdrop { animation: fade-in .25s ease-out; }
+    @keyframes modal-in {
+        from { opacity: 0; transform: translateY(16px) scale(.95); }
+        to   { opacity: 1; transform: none; }
+    }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+</style>
+
+{% block extra_js %}
+<script>
+    const modal = document.getElementById('modal-baja');
+    const form = document.getElementById('form-baja');
+    const nombre = document.getElementById('baja-nombre');
+    const btnConfirmar = document.getElementById('btn-confirmar-baja');
+
+    // Abrir: cada botón trae su URL y el nombre en data-attributes
+    document.querySelectorAll('[data-baja-url]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            form.action = btn.dataset.bajaUrl;
+            nombre.textContent = btn.dataset.bajaNombre;
+            btnConfirmar.disabled = false;
+            modal.showModal();
+        });
+    });
+
+    // Cerrar con el botón Cancelar
+    modal.querySelectorAll('[data-cerrar]').forEach(b =>
+        b.addEventListener('click', () => modal.close())
+    );
+
+    // Cerrar al hacer click en el fondo oscuro
+    modal.addEventListener('click', e => {
+        if (e.target === modal) modal.close();
+    });
+
+    // Evitar doble envío
+    form.addEventListener('submit', () => { btnConfirmar.disabled = true; });
+</script>
+
+
+{% endblock %}
+
+{% endblock %}
